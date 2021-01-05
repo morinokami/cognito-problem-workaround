@@ -1,25 +1,71 @@
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import { withAuthenticator, AmplifySignOut, form } from "@aws-amplify/ui-react";
+import { Auth } from "aws-amplify";
+
+const UpdateEmail = () => {
+  const [email, setEmail] = React.useState("");
+  const [code, setCode] = React.useState("");
+
+  const handleUpdate = async (event) => {
+    event.preventDefault();
+    const user = await Auth.currentAuthenticatedUser().catch(() => null);
+    await Auth.updateUserAttributes(user, {
+      email,
+      "custom:validated_email": user.attributes.email,
+    });
+  };
+
+  const handleVerify = async (event) => {
+    event.preventDefault();
+    const user = await Auth.currentAuthenticatedUser().catch(() => null);
+    const result = await Auth.verifyCurrentUserAttributeSubmit("email", code);
+    if (result === "SUCCESS") {
+      await Auth.updateUserAttributes(user, {
+        email,
+        "custom:validated_email": email,
+      });
+    }
+  };
+
+  return (
+    <>
+      <form onSubmit={handleUpdate}>
+        <label>
+          New Email:
+          <input
+            type="email"
+            name="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </label>
+        <input type="submit" value="Update" />
+      </form>
+
+      <hr />
+
+      <form onSubmit={handleVerify}>
+        <label>
+          Code:
+          <input
+            type="text"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+          />
+        </label>
+        <input type="submit" value="Verify" />
+      </form>
+    </>
+  );
+};
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <UpdateEmail />
+      <AmplifySignOut />
     </div>
   );
 }
 
-export default App;
+export default withAuthenticator(App);

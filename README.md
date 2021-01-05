@@ -1,70 +1,66 @@
-# Getting Started with Create React App
+https://github.com/aws-amplify/amplify-js/issues/987 の解決方法のデモ
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Step 1. Amplify によるアプリの作成
 
-## Available Scripts
+```
+$ amplify init # すべてデフォルト値で Enter
+$ amplify add auth # "How do you want users to be able to sign in?" にて "Email" を選択
+$ amplify push
+```
 
-In the project directory, you can run:
+## Step 2. カスタムアトリビュートの登録
 
-### `yarn start`
+1. 作成された User Pool を開く
+2. General settings > Attributes を開く
+3. ページ下部の "Add custom attribute" をクリックする
+4. 任意の名前（たとえば、"validated_email"）を入力する
+5. "Save changes" をクリックする
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Step 3. アトリビュートへのアクセス権の設定
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+1. Step 2 の User Pool のページにおいて、General settings > App clients を開く
+2. "\*\_app_clientWeb" と表示されているクライアントにおいて "Show Details" をクリックする
+3. 下部にある "Set attribute read and write permissions" をクリックする
+4. "Writable Attributes" において、先ほど作成した "custom:validated email" と、"name"、"phone number" にチェックを入れる
+5. "Save app client changes" をクリックする
 
-### `yarn test`
+## Step 4. Lambda の設定
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+1. Lambda のページを開き、"Create function" を選択する
+2. "Author from scratch" を選択した上で、"Function name" に任意の名前（たとえば、"verifyEmail"）を入力する
+3. "Create function" をクリックする
+4. 関数が作成されたら、`index.js` のコード部分に本リポジトリの `verifyEmail.js` をコピペする
+5. "Deploy" をクリックする
+6. "Permissions" のタブを開き、紐付けられた Role をクリックし、Role の設定画面を開く
+7. "Attach policies" をクリックする
+8. Lambda の実行権限として必要な `cognito-idp:AdminUpdateUserAttributes` をアタッチするため、"AmazonCognitoPowerUser" を選択し、"Attach policy" をクリックする
 
-### `yarn build`
+## Step 5. Cognito の Trigger において、上で作成した Lambda 関数 を登録する
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+1. 上で操作した User Pool において、General settings > Triggers を開く
+2. "Custom message" の "Lambda function" として上で作成した verifyEmail を選択する
+3. "Save changes" をクリックする
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Step 6. アプリの実行
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```
+$ yarn
+$ yarn start # localhost:3000 が開かれる
+```
 
-### `yarn eject`
+## Step 7. 問題が解決していることの検証
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+1. "Create account" からアカウントを作成する（"Username" と "Email Address" には同じ値を入れる、また、電話番号は何でもよい）
+2. 入力したメールアドレス宛に確認メールが送信されるので、コードを確認し、"Confirmation Code" のインプットに入力する
+3. "Confirm" をクリックする
+4. 一番上のインプットに異なるメールアドレスを入力し、"Update" をクリックする
+5. 新しいメールアドレス宛に確認メールが飛ぶが、User Pool などでユーザーの "email" の値が変化していないことを確認する
+6. 下のインプットに確認コードを入力し、"Verify" をクリックする
+7. 再度 User Pool において同ユーザーの "email" と "email_validated" の値を確認すると、前者は新しい値へと置き換わり、後者は `true` となっているはずである
+8. また、"Verify" をクリックせずにログアウトすると、以前のユーザーのままログインすることも確認可能である
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Step 8. 作成したアプリの消去
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `yarn build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```
+# amplify delete
+```
