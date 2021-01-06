@@ -11,18 +11,19 @@ const UpdateEmail = () => {
     const user = await Auth.currentAuthenticatedUser().catch(() => null);
     await Auth.updateUserAttributes(user, {
       email,
-      "custom:validated_email": user.attributes.email,
+      "custom:temp_email": user.attributes.email,
     });
   };
 
   const handleVerify = async (event) => {
     event.preventDefault();
     const user = await Auth.currentAuthenticatedUser().catch(() => null);
+    const newEmail = user.attributes["custom:temp_email"];
     const result = await Auth.verifyCurrentUserAttributeSubmit("email", code);
     if (result === "SUCCESS") {
       await Auth.updateUserAttributes(user, {
-        email,
-        "custom:validated_email": email,
+        newEmail,
+        "custom:temp_email": newEmail,
       });
     }
   };
