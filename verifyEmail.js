@@ -1,7 +1,7 @@
 const aws = require("aws-sdk");
 const cognitoIdServiceProvider = new aws.CognitoIdentityServiceProvider();
 
-exports.handler = async (event) => {
+exports.handler = async (event, _, callback) => {
   if (event.triggerSource === "CustomMessage_UpdateUserAttribute") {
     const validatedEmail =
       event.request.userAttributes["custom:validated_email"];
@@ -24,5 +24,5 @@ exports.handler = async (event) => {
       throw new Error("確認メール再送信を防ぐための意図的なエラー");
     }
   }
-  return event;
+  callback(null, event);
 };
