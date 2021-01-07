@@ -1,6 +1,8 @@
 import React from "react";
-import { withAuthenticator, AmplifySignOut, form } from "@aws-amplify/ui-react";
+import { withAuthenticator, AmplifySignOut } from "@aws-amplify/ui-react";
 import { Auth } from "aws-amplify";
+
+import axios from "axios";
 
 const UpdateEmail = () => {
   const [email, setEmail] = React.useState("");
@@ -9,23 +11,33 @@ const UpdateEmail = () => {
   const handleUpdate = async (event) => {
     event.preventDefault();
     const user = await Auth.currentAuthenticatedUser().catch(() => null);
-    await Auth.updateUserAttributes(user, {
-      email,
-      "custom:temp_email": user.attributes.email,
+    user.getSession(async (error, session) => {
+      if (error) {
+        return;
+      }
+      console.log(user);
+
+      await axios.post(
+        "https://bsw4oc1znf.execute-api.ap-northeast-1.amazonaws.com/test/email",
+        {
+          email,
+        },
+        {
+          headers: {
+            Authorization: session.getIdToken().jwtToken,
+          },
+        }
+      );
     });
   };
 
   const handleVerify = async (event) => {
     event.preventDefault();
     const user = await Auth.currentAuthenticatedUser().catch(() => null);
-    const newEmail = user.attributes["custom:temp_email"];
-    const result = await Auth.verifyCurrentUserAttributeSubmit("email", code);
-    if (result === "SUCCESS") {
-      await Auth.updateUserAttributes(user, {
-        newEmail,
-        "custom:temp_email": newEmail,
-      });
-    }
+    await Auth.updateUserAttributes(user, {
+      email: user.attributes.email, // CustomMessage_UpdateUserAttribute を呼ぶためにセット
+      "custom:confirmation_code": code,
+    });
   };
 
   return (

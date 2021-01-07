@@ -3,35 +3,30 @@ const cognitoIdServiceProvider = new aws.CognitoIdentityServiceProvider();
 
 exports.handler = async (event, _, callback) => {
   if (event.triggerSource === "CustomMessage_UpdateUserAttribute") {
-    const email = event.request.userAttributes.email;
-    const tempEmail = event.request.userAttributes["custom:temp_email"];
-    if (tempEmail !== email) {
-      // メールアドレスの変更を試みた場合の処理
-      // tempEmail に現在のメールアドレスが入っている
-      const params = {
-        UserAttributes: [
-          {
-            Name: "email_verified",
-            Value: "true",
-          },
-          {
-            Name: "email",
-            Value: tempEmail, // 現在のメールアドレスへと戻す
-          },
-          {
-            Name: "custom:temp_email",
-            Value: email, // 新しいメールアドレスを一時保存
-          },
-        ],
+    const user = await cognitoIdServiceProvider
+      .adminGetUser({
         UserPoolId: event.userPoolId,
         Username: event.userName,
-      };
+      })
+      .promise();
+    const confirmationCode =
+      event.request.userAttributes["custom:confirmation_code"];
+
+    if (confirmationCode) {
+      // コードを確認し、新しいメールアドレスへと置き換える処理
       await cognitoIdServiceProvider
-        .adminUpdateUserAttributes(params)
-        .promise();
-    } else {
-      // メールアドレスの確認が終わった際の処理
-      // email も tempEmail も新しいメールアドレスが入っている
+        .verifyUserAttribute({
+          AccessToken: event.accessToken,
+          AttributeName: "email",
+          Code: confirmationCode,
+        })
+        .catch((error) => {
+          throw error;
+        });
+
+      const newEmail = user.UserAttributes.filter(
+        (attr) => attr.Name === "custom:temp_email"
+      )[0].Value;
       const params = {
         UserAttributes: [
           {
@@ -40,10 +35,14 @@ exports.handler = async (event, _, callback) => {
           },
           {
             Name: "email",
-            Value: email, // 新しいメールアドレスへと書き換える
+            Value: newEmail, // 保存されていた新しいメールアドレスへと書き換える
           },
           {
             Name: "custom:temp_email",
+            Value: "",
+          },
+          {
+            Name: "custom:confirmation_code",
             Value: "",
           },
         ],
@@ -54,6 +53,35 @@ exports.handler = async (event, _, callback) => {
         .adminUpdateUserAttributes(params)
         .promise();
       throw new Error("確認メール再送信を防ぐための意図的なエラー");
+    } else {
+      // メールアドレスの変更を試みた場合の処理
+      const validatedEmail = user.UserAttributes.filter(
+        (attr) => attr.Name === "custom:temp_email"
+      )[0].Value;
+      const tempEmail = user.UserAttributes.filter(
+        (attr) => attr.Name === "email"
+      )[0].Value;
+      const params = {
+        UserAttributes: [
+          {
+            Name: "email_verified",
+            Value: "true",
+          },
+          {
+            Name: "email",
+            Value: validatedEmail, // 現在のメールアドレスへと戻す
+          },
+          {
+            Name: "custom:temp_email",
+            Value: tempEmail, // 新しいメールアドレスを一時保存
+          },
+        ],
+        UserPoolId: event.userPoolId,
+        Username: event.userName,
+      };
+      await cognitoIdServiceProvider
+        .adminUpdateUserAttributes(params)
+        .promise();
     }
   }
 
