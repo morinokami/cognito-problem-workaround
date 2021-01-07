@@ -8,6 +8,13 @@ https://github.com/aws-amplify/amplify-js/issues/987 の解決方法のデモ
 
 一番の問題は、`Auth.updateUserAttributes` の実行後に即座に属性値が書き換えられてしまうことである。以下は、この挙動を抑制し、ユーザーが新しいメールアドレスを検証したタイミングで初めて属性値を書き換えるようにするデモである。
 
+全体フローのイメージは以下のようになる:
+
+```
+{ email } -> API Gateway -> updateEmail -> Cognito -> registerEmail
+{ code } -> API Gateway -> confirmCode -> Cognito -> registerEmail
+```
+
 なお、実行にあたり、事前に Amplify CLI をインストールし、ユーザーを作成しておく必要がある:
 
 ```
