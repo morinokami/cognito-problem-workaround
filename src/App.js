@@ -15,7 +15,6 @@ const UpdateEmail = () => {
       if (error) {
         return;
       }
-      console.log(user);
 
       await axios.post(
         "https://bsw4oc1znf.execute-api.ap-northeast-1.amazonaws.com/test/email",
@@ -34,9 +33,23 @@ const UpdateEmail = () => {
   const handleVerify = async (event) => {
     event.preventDefault();
     const user = await Auth.currentAuthenticatedUser().catch(() => null);
-    await Auth.updateUserAttributes(user, {
-      email: user.attributes.email, // CustomMessage_UpdateUserAttribute を呼ぶためにセット
-      "custom:confirmation_code": code,
+    user.getSession(async (error, session) => {
+      if (error) {
+        return;
+      }
+
+      await axios.post(
+        "https://bsw4oc1znf.execute-api.ap-northeast-1.amazonaws.com/test/confirm",
+        {
+          code,
+          accessToken: user.signInUserSession.accessToken.jwtToken,
+        },
+        {
+          headers: {
+            Authorization: session.getIdToken().jwtToken,
+          },
+        }
+      );
     });
   };
 

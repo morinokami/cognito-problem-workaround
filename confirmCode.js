@@ -3,6 +3,20 @@ const cognitoIdServiceProvider = new aws.CognitoIdentityServiceProvider();
 
 exports.handler = async (event) => {
   const data = JSON.parse(event.body);
+  const accessToken = data.accessToken;
+  const code = data.code;
+
+  await cognitoIdServiceProvider
+    .verifyUserAttribute({
+      AccessToken: accessToken,
+      AttributeName: "email",
+      Code: code,
+    })
+    .promise()
+    .catch((error) => {
+      throw error;
+    });
+
   const payload = JSON.parse(
     Buffer.from(
       event.headers["Authorization"].split(".")[1],
@@ -17,19 +31,19 @@ exports.handler = async (event) => {
       Username: username,
     })
     .promise();
-  const validatedEmail = user.UserAttributes.filter(
-    (attr) => attr.Name === "email"
-  )[0].Value;
 
+  const tempEmail = user.UserAttributes.filter(
+    (attr) => attr.Name === "custom:temp_email"
+  )[0].Value;
   const params = {
     UserAttributes: [
       {
         Name: "email",
-        Value: data.email,
+        Value: tempEmail, // 保存されていた新しいメールアドレスへと書き換える
       },
       {
         Name: "custom:temp_email",
-        Value: validatedEmail,
+        Value: tempEmail,
       },
     ],
     UserPoolId: userPoolId,
