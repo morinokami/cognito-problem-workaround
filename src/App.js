@@ -1,6 +1,8 @@
 import React from "react";
-import { withAuthenticator, AmplifySignOut, form } from "@aws-amplify/ui-react";
+import { withAuthenticator, AmplifySignOut } from "@aws-amplify/ui-react";
 import { Auth } from "aws-amplify";
+
+import axios from "axios";
 
 const UpdateEmail = () => {
   const [email, setEmail] = React.useState("");
@@ -9,22 +11,46 @@ const UpdateEmail = () => {
   const handleUpdate = async (event) => {
     event.preventDefault();
     const user = await Auth.currentAuthenticatedUser().catch(() => null);
-    await Auth.updateUserAttributes(user, {
-      email,
-      "custom:validated_email": user.attributes.email,
+    user.getSession(async (error, session) => {
+      if (error) {
+        return;
+      }
+
+      await axios.post(
+        "<更新用エンドポイント>",
+        {
+          email,
+        },
+        {
+          headers: {
+            Authorization: session.getIdToken().jwtToken,
+          },
+        }
+      );
     });
   };
 
   const handleVerify = async (event) => {
     event.preventDefault();
     const user = await Auth.currentAuthenticatedUser().catch(() => null);
-    const result = await Auth.verifyCurrentUserAttributeSubmit("email", code);
-    if (result === "SUCCESS") {
-      await Auth.updateUserAttributes(user, {
-        email,
-        "custom:validated_email": email,
-      });
-    }
+    user.getSession(async (error, session) => {
+      if (error) {
+        return;
+      }
+
+      await axios.post(
+        "<コード認証用エンドポイント>",
+        {
+          code,
+          accessToken: user.signInUserSession.accessToken.jwtToken,
+        },
+        {
+          headers: {
+            Authorization: session.getIdToken().jwtToken,
+          },
+        }
+      );
+    });
   };
 
   return (

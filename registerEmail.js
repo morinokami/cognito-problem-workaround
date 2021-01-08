@@ -3,8 +3,8 @@ const cognitoIdServiceProvider = new aws.CognitoIdentityServiceProvider();
 
 exports.handler = async (event, _, callback) => {
   if (event.triggerSource === "CustomMessage_UpdateUserAttribute") {
-    const validatedEmail =
-      event.request.userAttributes["custom:validated_email"];
+    const validatedEmail = event.request.userAttributes.email;
+    const tempEmail = event.request.userAttributes["custom:temp_email"];
     const params = {
       UserAttributes: [
         {
@@ -15,14 +15,19 @@ exports.handler = async (event, _, callback) => {
           Name: "email",
           Value: validatedEmail,
         },
+        {
+          Name: "custom:temp_email",
+          Value: tempEmail,
+        },
       ],
       UserPoolId: event.userPoolId,
       Username: event.userName,
     };
     await cognitoIdServiceProvider.adminUpdateUserAttributes(params).promise();
-    if (validatedEmail === event.request.userAttributes.email) {
+    if (validatedEmail === tempEmail) {
       throw new Error("確認メール再送信を防ぐための意図的なエラー");
     }
   }
+
   callback(null, event);
 };
