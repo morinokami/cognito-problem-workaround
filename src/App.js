@@ -17,7 +17,7 @@ const UpdateEmail = () => {
       }
 
       await axios.post(
-        "https://bsw4oc1znf.execute-api.ap-northeast-1.amazonaws.com/test/email",
+        "<更新用エンドポイント>",
         {
           email,
         },
@@ -39,7 +39,7 @@ const UpdateEmail = () => {
       }
 
       await axios.post(
-        "https://bsw4oc1znf.execute-api.ap-northeast-1.amazonaws.com/test/confirm",
+        "<コード認証用エンドポイント>",
         {
           code,
           accessToken: user.signInUserSession.accessToken.jwtToken,
