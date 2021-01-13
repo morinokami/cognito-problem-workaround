@@ -13,11 +13,11 @@ exports.handler = async (event, _, callback) => {
         },
         {
           Name: "email",
-          Value: validatedEmail,
+          Value: tempEmail,
         },
         {
           Name: "custom:temp_email",
-          Value: tempEmail,
+          Value: validatedEmail,
         },
       ],
       UserPoolId: event.userPoolId,
