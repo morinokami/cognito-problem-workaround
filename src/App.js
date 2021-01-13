@@ -94,6 +94,7 @@ function App() {
   return (
     <div>
       <UpdateEmail />
+      <hr />
       <AmplifySignOut />
     </div>
   );
