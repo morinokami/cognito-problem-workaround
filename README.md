@@ -45,15 +45,7 @@ $ amplify push
 4. 任意の名前（たとえば、"temp_email"）を入力する
 5. "Save changes" をクリックする
 
-## Step 3. アトリビュートへのアクセス権の設定
-
-1. Step 2 の User Pool のページにおいて、General settings > App clients を開く
-2. "\*\_app_clientWeb" と表示されているクライアントにおいて "Show Details" をクリックする
-3. 下部にある "Set attribute read and write permissions" をクリックする
-4. "Writable Attributes" において、先ほど作成した "custom:temp email" と、"name"、"phone number" にチェックを入れる
-5. "Save app client changes" をクリックする
-
-## Step 4. Cognito の Trigger により呼ばれる Lambda の設定
+## Step 3. Cognito の Trigger により呼ばれる Lambda の設定
 
 1. Lambda のページを開き、"Create function" を選択する
 2. "Author from scratch" を選択した上で、"Function name" に任意の名前（たとえば、"verifyEmail"）を入力する
@@ -64,20 +56,20 @@ $ amplify push
 7. "Attach policies" をクリックする
 8. Lambda の実行権限として必要な `cognito-idp:AdminUpdateUserAttributes` をアタッチするため、"AmazonCognitoPowerUser" を選択し、"Attach policy" をクリックする
 
-## Step 5. Cognito において、上で作成した Lambda を登録する
+## Step 4. Cognito において、上で作成した Lambda を登録する
 
 1. 上で操作した User Pool において、General settings > Triggers を開く
 2. "Custom message" の "Lambda function" として上で作成した verifyEmail を選択する
 3. "Save changes" をクリックする
 
-##　 Step 6. API Gateway から呼ばれる Lambda の設定
+## Step 5. API Gateway から呼ばれる Lambda の設定
 
 1. Lambda のページから、`updateEmail.js` と `confirmCode.js` をコピペした 二つの関数を作成する
 2. 両者ともに、`USER_POOL_ID` という環境変数を作成し、値として使用する User Pool の ID を登録する
 3. また、権限に関しては、Step 4 と同様に設定する
 4. 二つの Lambda をデプロイする
 
-## Step 7. API Gateway の設定
+## Step 6. API Gateway の設定
 
 1. API Gateway において、新規に REST API を作成する
 2. 更新用とコード確認用のエンドポイトとして二つのリソースを作成し、それぞれ CORS を有効化しておく
