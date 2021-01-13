@@ -16,17 +16,22 @@ const UpdateEmail = () => {
         return;
       }
 
-      await axios.post(
-        "<更新用エンドポイント>",
-        {
-          email,
-        },
-        {
-          headers: {
-            Authorization: session.getIdToken().jwtToken,
+      try {
+        await axios.post(
+          "<メールアドレス更新用エンドポイント>",
+          {
+            email,
           },
-        }
-      );
+          {
+            headers: {
+              Authorization: session.getIdToken().jwtToken,
+            },
+          }
+        );
+        alert("確認コードを送信しました");
+      } catch (err) {
+        console.error(err);
+      }
     });
   };
 
