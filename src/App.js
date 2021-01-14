@@ -43,18 +43,23 @@ const UpdateEmail = () => {
         return;
       }
 
-      await axios.post(
-        "<コード認証用エンドポイント>",
-        {
-          code,
-          accessToken: user.signInUserSession.accessToken.jwtToken,
-        },
-        {
-          headers: {
-            Authorization: session.getIdToken().jwtToken,
+      try {
+        await axios.post(
+          "<コード認証用エンドポイント>",
+          {
+            code,
+            accessToken: user.signInUserSession.accessToken.jwtToken,
           },
-        }
-      );
+          {
+            headers: {
+              Authorization: session.getIdToken().jwtToken,
+            },
+          }
+        );
+        alert("メールアドレスの変更が完了しました");
+      } catch (err) {
+        console.error(err);
+      }
     });
   };
 

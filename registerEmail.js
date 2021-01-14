@@ -25,7 +25,11 @@ exports.handler = async (event, _, callback) => {
     };
     await cognitoIdServiceProvider.adminUpdateUserAttributes(params).promise();
     if (validatedEmail === tempEmail) {
-      throw new Error("確認メール再送信を防ぐための意図的なエラー");
+      event.response.emailSubject = "メールアドレスを変更しました";
+      event.response.emailMessage =
+        '<body>メールアドレスを変更しました<span style="display: none">' +
+        event.request.codeParameter +
+        "</span></body>";
     }
   }
 
