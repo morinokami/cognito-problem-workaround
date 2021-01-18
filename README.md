@@ -10,17 +10,7 @@ https://github.com/aws-amplify/amplify-js/issues/987 の解決方法のデモ
 
 全体フローのイメージは以下のようになる:
 
-```
-[メールアドレス変更リクエストのフロー]
-client -> { email } -> <API Gateway、認証> -> <Lambda: updateEmail> -> <Cognito> -> <Lambda: registerEmail>
-
-[コード認証のフロー]
-client -> { code } -> <API Gateway、認証> -> <Lambda: confirmCode> -> <Cognito> -> <Lambda: registerEmail>
-
-updateEmailは、ユーザーから受け取ったメールアドレスを登録し、もとのメールアドレスをカスタムアトリビュートへと登録する
-registerEmailは、登録されているメールアドレスとカスタムアトリビュートの値をスワップし、また両者が同一の値であれば意図的にエラーを起こし不要な認証コードが飛ぶことを防ぐ
-confirmCodeは、ユーザーから受け取ったコードを確認し、問題なければカスタムアトリビュートの値をメールアドレスとして登録する
-```
+![overview](./overview.jpg)
 
 なお、実行にあたり、事前に Amplify CLI をインストールし、ユーザーを作成しておく必要がある:
 
@@ -28,6 +18,8 @@ confirmCodeは、ユーザーから受け取ったコードを確認し、問題
 $ npm install -g @aws-amplify/cli
 $ amplify configure
 ```
+
+TODO: 以下の説明を更新
 
 ## Step 1. Amplify によるアプリの作成
 
