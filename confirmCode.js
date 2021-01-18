@@ -38,11 +38,15 @@ exports.handler = async (event) => {
   const params = {
     UserAttributes: [
       {
+        Name: "email_verified",
+        Value: "true",
+      },
+      {
         Name: "email",
         Value: tempEmail, // 保存されていた新しいメールアドレスへと書き換える
       },
       {
-        Name: "custom:temp_email",
+        Name: "custom:confirmed_email",
         Value: tempEmail,
       },
     ],

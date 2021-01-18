@@ -3,7 +3,32 @@ const cognitoIdServiceProvider = new aws.CognitoIdentityServiceProvider();
 
 exports.handler = async (event, _, callback) => {
   if (event.triggerSource === "CustomMessage_UpdateUserAttribute") {
-    const validatedEmail = event.request.userAttributes.email;
+    // Lambda を経由していない不正な更新操作かどうかを確認し、その場合は email の値をもとに戻す
+    const lambda = event.request.userAttributes["custom:lambda"];
+    if (lambda === "0") {
+      const confirmedEmail =
+        event.request.userAttributes["custom:confirmed_email"];
+      const params = {
+        UserAttributes: [
+          {
+            Name: "email_verified",
+            Value: "true",
+          },
+          {
+            Name: "email",
+            Value: confirmedEmail,
+          },
+        ],
+        UserPoolId: event.userPoolId,
+        Username: event.userName,
+      };
+      await cognitoIdServiceProvider
+        .adminUpdateUserAttributes(params)
+        .promise();
+      throw new Error("不正な操作が実行されました");
+    }
+
+    const email = event.request.userAttributes.email;
     const tempEmail = event.request.userAttributes["custom:temp_email"];
     const params = {
       UserAttributes: [
@@ -17,20 +42,17 @@ exports.handler = async (event, _, callback) => {
         },
         {
           Name: "custom:temp_email",
-          Value: validatedEmail,
+          Value: email,
+        },
+        {
+          Name: "custom:lambda",
+          Value: "0",
         },
       ],
       UserPoolId: event.userPoolId,
       Username: event.userName,
     };
     await cognitoIdServiceProvider.adminUpdateUserAttributes(params).promise();
-    if (validatedEmail === tempEmail) {
-      event.response.emailSubject = "メールアドレスを変更しました";
-      event.response.emailMessage =
-        '<body>メールアドレスを変更しました<span style="display: none">' +
-        event.request.codeParameter +
-        "</span></body>";
-    }
   }
 
   callback(null, event);

@@ -31,6 +31,10 @@ exports.handler = async (event) => {
         Name: "custom:temp_email",
         Value: validatedEmail,
       },
+      {
+        Name: "custom:lambda",
+        Value: "1",
+      },
     ],
     UserPoolId: userPoolId,
     Username: username,
